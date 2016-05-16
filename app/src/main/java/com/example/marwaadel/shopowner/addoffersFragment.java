@@ -1,29 +1,31 @@
 package com.example.marwaadel.shopowner;
 
 import android.app.Activity;
+import android.app.DatePickerDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.Toolbar;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.v4.app.Fragment;
-import android.support.v7.app.AlertDialog;
-import android.util.Base64;
+import android.text.InputType;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ImageButton;
 
 import com.cloudinary.Cloudinary;
+import com.example.marwaadel.shopowner.mPicasso.PicassoClient;
 import com.example.marwaadel.shopowner.model.OfferDataModel;
 import com.example.marwaadel.shopowner.utils.Constants;
 import com.firebase.client.Firebase;
@@ -32,30 +34,42 @@ import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 /**
  * A placeholder fragment containing a simple view.
  */
-public class addoffersFragment extends Fragment {
+public class addoffersFragment extends Fragment implements View.OnClickListener {
 
-
+    //UI References
+    private EditText fromDateEtxt;
+    private EditText toDateEtxt;
+    private DatePickerDialog fromDatePickerDialog;
+    private DatePickerDialog toDatePickerDialog;
+    private SimpleDateFormat dateFormatter;
 
 
     Firebase listsRef;
-    EditText mTitle, mDescription, mBefore, mAfter, mDay1, mMonth1, mYear1, mDay2, mMonth2, mYear2;
+    EditText mTitle, mDescription, mBefore, mAfter;
     ImageButton btn1;
-    String img;
-    OfferDataModel toEdit=null;
+    OfferDataModel toEdit = null;
     String uuidRef;
     Cloudinary cloudinary;
     Uri uri;
-
     private int PICK_IMAGE_REQUEST = 1;
+    String Generated_Id;
 
 
     public addoffersFragment() {
+    }
+
+    public String generatePIN() {
+        int randomPIN = (int) (Math.random() * 9000) + 1000;
+        return String.valueOf(randomPIN);
     }
 
     @Override
@@ -63,6 +77,18 @@ public class addoffersFragment extends Fragment {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
 
+    }
+
+    public boolean isConnected(Context context) {
+        ConnectivityManager cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo netinfo = cm.getActiveNetworkInfo();
+        if (netinfo != null && netinfo.isConnectedOrConnecting()) {
+            android.net.NetworkInfo wifi = cm.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
+            android.net.NetworkInfo mobile = cm.getNetworkInfo(ConnectivityManager.TYPE_MOBILE);
+            if ((mobile != null && mobile.isConnectedOrConnecting()) || (wifi != null && wifi.isConnectedOrConnecting()))
+                return true;
+            else return false;
+        } else return false;
     }
 
     @Override
@@ -76,85 +102,77 @@ public class addoffersFragment extends Fragment {
                 String description = mDescription.getText().toString();
                 String before = mBefore.getText().toString();
                 String after = mAfter.getText().toString();
-                String day1 = mDay1.getText().toString();
-                String month1 = mMonth1.getText().toString();
-                String year1 = mYear1.getText().toString();
-                String day2 = mDay2.getText().toString();
-                String month2 = mMonth2.getText().toString();
-                String year2 = mYear2.getText().toString();
+                String day1 = fromDateEtxt.getText().toString();
+                String day2 = toDateEtxt.getText().toString();
 
-                if(uri != null){
-                    try {
+                if (isConnected(getContext())) {
 
-                        final Map<String, String> options = new HashMap<>();
-                        options.put("public_id", mTitle.getText().toString());
+                    if (uri != null) {
+                        try {
 
-                        final InputStream in = ((addoffers)getActivity()).getContentResolver().openInputStream(uri);
-                        Runnable runnable = new Runnable() {
-                            @Override
-                            public void run() {
-                                try {
-                                    cloudinary.uploader().upload(in, options);
-                                } catch (IOException e) {
-
-                                    e.printStackTrace();
+                            Generated_Id = generatePIN();
+                            final InputStream in = ((addoffers) getActivity()).getContentResolver().openInputStream(uri);
+                            Runnable runnable = new Runnable() {
+                                @Override
+                                public void run() {
+                                    try {
+                                        cloudinary.uploader().upload(in, Cloudinary.asMap("public_id",Generated_Id));
+                                    } catch (IOException e) {
+                                        e.printStackTrace();
+                                    }
                                 }
-                            }
-                        };
+                            };
 
-                        new Thread(runnable).start();
-
-
-                    } catch (FileNotFoundException e) {
-                        e.printStackTrace();
-                    } catch (IOException e) {
-                        e.printStackTrace();
+                            new Thread(runnable).start();
+                        } catch (FileNotFoundException e) {
+                            e.printStackTrace();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
                     }
+
+                    if (toEdit != null) { //update
+                        Firebase eRef = new Firebase(Constants.FIREBASE_URL).child("OfferList").child(uuidRef);
+                        Map<String, Object> updates = new HashMap<>();
+                        updates.put("Title", title);
+                        updates.put("Description", description);
+                        updates.put("DiscountBefore", before);
+                        updates.put("DiscountAfter", after);
+                        updates.put("DayStartOffer", day1);
+                        updates.put("DayEndOffer", day2);
+                        if(Generated_Id !=null) {
+                            updates.put("offerImage", cloudinary.url().generate(Generated_Id + ".jpg"));
+                        }
+                        eRef.updateChildren(updates);
+                        Intent intent = new Intent(getContext(), showoffers.class);
+                        startActivity(intent);
+                    } else {
+                        Map<String, Object> values = new HashMap<>();
+                        values.put("Title", title);
+                        values.put("Description", description);
+                        values.put("DiscountBefore", before);
+                        values.put("DiscountAfter", after);
+                        values.put("DayStartOffer", day1);
+                        values.put("DayEndOffer", day2);
+                        values.put("status", "false");
+                        values.put("offerImage", cloudinary.url().generate(Generated_Id + ".jpg"));
+                        listsRef.push().setValue(values);
+                        Intent intent = new Intent(getContext(), showoffers.class);
+                        startActivity(intent);
+                    }
+                } else {
+
+                    AlertDialog alertDialog = new AlertDialog.Builder(getContext()).create();
+                    alertDialog.setTitle("No Internet connection.");
+                    alertDialog.setMessage("You have no internet connection");
+                    alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK",
+                            new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int which) {
+                                    dialog.dismiss();
+                                }
+                            });
+                    alertDialog.show();
                 }
-
-                if (toEdit != null) { //update
-                    Firebase eRef = new Firebase(Constants.FIREBASE_URL).child("OfferList").child(uuidRef);
-                    Map<String, Object> updates = new HashMap<>();
-                    updates.put("Title", title);
-                    updates.put("Description", description);
-                    updates.put("Discount Before", before);
-                    updates.put("Discount After", after);
-                    updates.put("Day start Offer", day1);
-                    updates.put("Month start Offer", month1);
-                    updates.put("Year start offer", year1);
-                    updates.put("Day end Offer", day2);
-                    updates.put("Month end Offer", month2);
-                    updates.put("Year end Offer", year2);
-//                    Log.e("image", img);
-//                    updates.put("offerImage", img);
-                    eRef.updateChildren(updates);
-                    Intent intent = new Intent(getContext(), showoffers.class);
-                    startActivity(intent);
-                }
-                else {
-
-                    Map<String, Object> values = new HashMap<>();
-                    values.put("Title", title);
-                    values.put("Description", description);
-                    values.put("Discount Before", before);
-                    values.put("Discount After", after);
-                    values.put("Day start Offer", day1);
-                    values.put("Month start Offer", month1);
-                    values.put("Year start offer", year1);
-                    values.put("Day end Offer", day2);
-                    values.put("Month end Offer", month2);
-                    values.put("Year end Offer", year2);
-                    values.put("status","false");
-
-//                    Log.e("image", img);
-                    values.put("offerImage", cloudinary.url().generate(mTitle.getText().toString()+".jpg"));
-                    listsRef.push().setValue(values);
-
-                    Intent intent = new Intent(getContext(), showoffers.class);
-                    startActivity(intent);
-                }
-
-
 
                 return true;
 
@@ -168,6 +186,8 @@ public class addoffersFragment extends Fragment {
                              Bundle savedInstanceState) {
 
         View rootView = inflater.inflate(R.layout.fragment_addoffers, container, false);
+        dateFormatter = new SimpleDateFormat("dd-MM-yyyy", Locale.US);
+
 
         //----------
         Map config = new HashMap();
@@ -178,14 +198,15 @@ public class addoffersFragment extends Fragment {
         //----------
 
         Intent intent = getActivity().getIntent();
-        // String shopUUID = intent.getStringExtra("editobj");
+        // String shopUUID = intent.getStringExtra("e
+        // ditobj");
         toEdit = (OfferDataModel) intent.getSerializableExtra("editobj");
         uuidRef = intent.getStringExtra("uuid");
 
-        Toolbar  toolbar = (Toolbar) rootView.findViewById(R.id.toolbar);
+        Toolbar toolbar = (Toolbar) rootView.findViewById(R.id.toolbar);
         toolbar.setNavigationIcon(R.drawable.close);
-       ((addoffers)getActivity()). setSupportActionBar(toolbar);
-        ((addoffers)getActivity()).getSupportActionBar().setDisplayShowTitleEnabled(false);
+        ((addoffers) getActivity()).setSupportActionBar(toolbar);
+        ((addoffers) getActivity()).getSupportActionBar().setDisplayShowTitleEnabled(false);
 
 
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
@@ -201,21 +222,23 @@ public class addoffersFragment extends Fragment {
         mDescription = (EditText) rootView.findViewById(R.id.editDescription);
         mBefore = (EditText) rootView.findViewById(R.id.editTilte2);
         mAfter = (EditText) rootView.findViewById(R.id.editTilte4);
-        mDay1 = (EditText) rootView.findViewById(R.id.editDay);
-        mMonth1 = (EditText) rootView.findViewById(R.id.editMonth);
-        mYear1 = (EditText) rootView.findViewById(R.id.editYear);
-        mDay2 = (EditText) rootView.findViewById(R.id.editDay2);
-        mMonth2 = (EditText) rootView.findViewById(R.id.editMonth2);
-        mYear2 = (EditText) rootView.findViewById(R.id.editYear2);
+        fromDateEtxt = (EditText) rootView.findViewById(R.id.etxt_fromdate);
+        toDateEtxt = (EditText) rootView.findViewById(R.id.etxt_todate);
+        findViewsById();
+        setDateTimeField();
+//        mDay1 = (EditText) rootView.findViewById(R.id.editDay);
+//        mMonth1 = (EditText) rootView.findViewById(R.id.editMonth);
+//        mYear1 = (EditText) rootView.findViewById(R.id.editYear);
+//        mDay2 = (EditText) rootView.findViewById(R.id.editDay2);
+//        mMonth2 = (EditText) rootView.findViewById(R.id.editMonth2);
+//        mYear2 = (EditText) rootView.findViewById(R.id.editYear2);
         btn1 = (ImageButton) rootView.findViewById(R.id.btn);
         btn1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent();
-// Show only images, no videos or anything else
                 intent.setType("image/*");
                 intent.setAction(Intent.ACTION_GET_CONTENT);
-// Always show the chooser (if there are multiple options available)
                 startActivityForResult(Intent.createChooser(intent, "Select Picture"), PICK_IMAGE_REQUEST);
 
             }
@@ -226,18 +249,51 @@ public class addoffersFragment extends Fragment {
             mDescription.setText(toEdit.getDescription());
             mBefore.setText(toEdit.getDiscountBefore());
             mAfter.setText(toEdit.getDiscountAfter());
-            mDay1.setText(toEdit.getDayStartOffer());
-            mMonth1.setText(toEdit.getMonthStartOffer());
-            mYear1.setText(toEdit.getYearStartOffer());
-            mDay2.setText(toEdit.getDayEndOffer());
-            mMonth2.setText(toEdit.getMonthEndOffer());
-            mYear2.setText(toEdit.getYearEndOffer());
+            fromDateEtxt.setText(toEdit.getDayStartOffer());
+            toDateEtxt.setText(toEdit.getDayEndOffer());
+            PicassoClient.downloadImg(getActivity(),toEdit.getOfferImage(),btn1);
+//            mDay1.setText(toEdit.getDayStartOffer());
+//            mMonth1.setText(toEdit.getMonthStartOffer());
+//            mYear1.setText(toEdit.getYearStartOffer());
+//            mDay2.setText(toEdit.getDayEndOffer());
+//            mMonth2.setText(toEdit.getMonthEndOffer());
+//            mYear2.setText(toEdit.getYearEndOffer());
 
 
         }
 
 
         return rootView;
+    }
+
+    private void setDateTimeField() {
+        fromDateEtxt.setOnClickListener(this);
+        toDateEtxt.setOnClickListener(this);
+        Calendar newCalendar = Calendar.getInstance();
+        fromDatePickerDialog = new DatePickerDialog(getActivity(), new DatePickerDialog.OnDateSetListener() {
+
+            public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
+                Calendar newDate = Calendar.getInstance();
+                newDate.set(year, monthOfYear, dayOfMonth);
+                fromDateEtxt.setText(dateFormatter.format(newDate.getTime()));
+            }
+
+        }, newCalendar.get(Calendar.YEAR), newCalendar.get(Calendar.MONTH), newCalendar.get(Calendar.DAY_OF_MONTH));
+
+        toDatePickerDialog = new DatePickerDialog(getActivity(), new DatePickerDialog.OnDateSetListener() {
+
+            public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
+                Calendar newDate = Calendar.getInstance();
+                newDate.set(year, monthOfYear, dayOfMonth);
+                toDateEtxt.setText(dateFormatter.format(newDate.getTime()));
+            }
+
+        }, newCalendar.get(Calendar.YEAR), newCalendar.get(Calendar.MONTH), newCalendar.get(Calendar.DAY_OF_MONTH));
+    }
+    private void findViewsById() {
+        fromDateEtxt.setInputType(InputType.TYPE_NULL);
+        fromDateEtxt.requestFocus();
+        toDateEtxt.setInputType(InputType.TYPE_NULL);
     }
 
 
@@ -261,6 +317,12 @@ public class addoffersFragment extends Fragment {
     }
 
 
-
-
+    @Override
+    public void onClick(View v) {
+        if (v == fromDateEtxt) {
+            fromDatePickerDialog.show();
+        } else if (v == toDateEtxt) {
+            toDatePickerDialog.show();
+        }
+    }
 }

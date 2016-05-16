@@ -47,13 +47,14 @@
                 <ImageButton
                     android:layout_width="200dp"
                     android:layout_height="200dp"
-                    android:src="@drawable/button"
                     android:scaleType="centerInside"
+                    android:src="@drawable/button"
                     android:id="@+id/btn"
-                    android:padding="50dp"
                     />
 
             </LinearLayout>
+
+
 
             <LinearLayout
                 android:layout_width="wrap_content"
@@ -149,7 +150,7 @@
                         android:layout_marginLeft="15dp"
                         android:textColor="@color/black"
                         android:textSize="@dimen/login_buttons_text_size"
-                        android:hint="After"/>
+                        android:hint="rate"/>
 
                 </LinearLayout>
 
@@ -161,43 +162,17 @@
                     android:text="Start Offer"/>
 
                 <LinearLayout
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="16.6sp"
                     android:orientation="horizontal">
 
-
-
                     <EditText
-                        android:id="@+id/editDay"
-                        android:layout_width="wrap_content"
+                        android:id="@+id/etxt_fromdate"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:background="@android:color/white"
-                        android:padding="@dimen/edit_text_padding"
-                        android:textColor="@color/black"
-                        android:textSize="@dimen/login_buttons_text_size"
-                        android:hint="Day"/>
-                    <EditText
-                        android:id="@+id/editMonth"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:background="@android:color/white"
-                        android:padding="@dimen/edit_text_padding"
-                        android:textColor="@color/black"
-                        android:layout_marginLeft="15dp"
-                        android:textSize="@dimen/login_buttons_text_size"
-                        android:hint="Month"/>
-
-                    <EditText
-                        android:id="@+id/editYear"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:background="@android:color/white"
-                        android:padding="@dimen/edit_text_padding"
-                        android:textColor="@color/black"
-                        android:layout_marginLeft="15dp"
-                        android:textSize="@dimen/login_buttons_text_size"
-                        android:hint="Year"/>
+                        android:layout_weight=".5"
+                        android:hint="from" />
 
                 </LinearLayout>
 
@@ -208,45 +183,18 @@
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="10sp"
                     android:text="End Offer"/>
+
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-
                     android:orientation="horizontal">
 
-
-
                     <EditText
-                        android:id="@+id/editDay2"
-                        android:layout_width="wrap_content"
+                        android:id="@+id/etxt_todate"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:background="@android:color/white"
-                        android:padding="@dimen/edit_text_padding"
-                        android:textColor="@color/black"
-                        android:textSize="@dimen/login_buttons_text_size"
-                        android:hint="Day"/>
-                    <EditText
-                        android:id="@+id/editMonth2"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:background="@android:color/white"
-                        android:padding="@dimen/edit_text_padding"
-                        android:textColor="@color/black"
-                        android:layout_marginLeft="15dp"
-                        android:textSize="@dimen/login_buttons_text_size"
-                        android:hint="Month"/>
-
-                    <EditText
-                        android:id="@+id/editYear2"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:background="@android:color/white"
-                        android:padding="@dimen/edit_text_padding"
-                        android:textColor="@color/black"
-                        android:layout_marginLeft="15dp"
-                        android:textSize="@dimen/login_buttons_text_size"
-                        android:hint="Year"/>
-
+                        android:layout_weight=".5"
+                        android:hint="to" />
 
                 </LinearLayout>
 
@@ -256,5 +204,3 @@
 
     </ScrollView>
 </LinearLayout>
-
-

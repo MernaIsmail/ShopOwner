@@ -49,7 +49,7 @@ import java.net.URL;
 public class showoffersFragment extends Fragment {
     GridView gridview;
     FirebaseListAdapter<OfferDataModel> mOfferAdapter;
-    ImageButton FAB;
+    ImageView FAB;
     TextView title;
     LinearLayout linlaHeaderProgress;
 
@@ -86,14 +86,12 @@ public class showoffersFragment extends Fragment {
 
 //            Cloudinary cloudinary = new Cloudinary("cloudinary://667862958976234:zAQ9orjld73mDil8fFsdDNXUQrg@gp");
 
-              linlaHeaderProgress = (LinearLayout) rootView.findViewById(R.id.linlaHeaderProgress);
+            linlaHeaderProgress = (LinearLayout) rootView.findViewById(R.id.linlaHeaderProgress);
 //            ImageView forTest=(ImageView)rootView.findViewById(R.id.forTest) ;
 //            String img =cloudinary.url().transformation(new Transformation().width(50).height(50).crop("fill")).generate("sample.jpg");
 //            byte[] decodedString = Base64.decode(img, Base64.DEFAULT);
 //            Bitmap decodedByte = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
 //            forTest.setImageBitmap(decodedByte);
-
-
 
 
             gridview = (GridView) rootView.findViewById(R.id.mGridView);
@@ -111,13 +109,13 @@ public class showoffersFragment extends Fragment {
                 }
             });
             Log.d("kmjk", "onCreateView: " + refListName.getKey());
-            mOfferAdapter = new FirebaseListAdapter<OfferDataModel>(getActivity(), OfferDataModel.class, R.layout.offeritem,query) {
+            mOfferAdapter = new FirebaseListAdapter<OfferDataModel>(getActivity(), OfferDataModel.class, R.layout.offeritem, query) {
                 @Override
                 protected void populateView(View v, final OfferDataModel model, final int position) {
-                    //   double num1,num2,result;
+                    double num1, num2, result;
                     LinearLayout deleteBtn = (LinearLayout) v.findViewById(R.id.deleteLayout);
                     LinearLayout editBtn = (LinearLayout) v.findViewById(R.id.editLayout);
-                    ImageView imgOffer=(ImageView) v.findViewById(R.id.offerImg);
+                    ImageView imgOffer = (ImageView) v.findViewById(R.id.offerImg);
                     title = (TextView) v.findViewById(R.id.titlteoffer);
                     TextView description = (TextView) v.findViewById(R.id.descriptionoffer);
                     TextView before = (TextView) v.findViewById(R.id.beforeoffer);
@@ -126,10 +124,25 @@ public class showoffersFragment extends Fragment {
                     TextView after = (TextView) v.findViewById(R.id.afteroffer);
                     Log.d("data", "populateView " + model.getDescription());
                     TextView Discountdifference = (TextView) v.findViewById(R.id.Discountdifferencez);
-//        num1 = Double.parseDouble(after.getText().toString());
-//        num2 = Double.parseDouble(before.getText().toString());
-//        result=(1- (num1/num2));
-//        Discountdifference.setText(Double.toString(result));
+
+                    try {
+                        num1 = Double.parseDouble(after.getText().toString());
+                    } catch (NumberFormatException e) {
+                        num1 = 0; // your default value
+                    }
+
+                    try {
+                        num2 = Double.parseDouble(before.getText().toString());
+                    } catch (NumberFormatException e) {
+                        num2 = 0; // your default value
+                    }
+
+                    //   result = ((1 - (num1 / num2)));
+                    result = (num2 * (num1 / 100));
+                    Log.d("discount", String.valueOf(num1));
+                    Log.d("discount2", String.valueOf(num2));
+                    Log.d("%", String.valueOf(result));
+                    Discountdifference.setText(Double.toString(result) + "%");
                     editBtn.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
@@ -148,7 +161,7 @@ public class showoffersFragment extends Fragment {
                             shopRef.setValue("true");
                         }
                     });
-                    PicassoClient.downloadImg(getActivity(),model.getOfferImage(),imgOffer);
+                    PicassoClient.downloadImg(getActivity(), model.getOfferImage(), imgOffer);
                     title.setText(model.getTitle());
                     description.setText(model.getDescription());
                     before.setText(model.getDiscountBefore());
@@ -184,7 +197,7 @@ public class showoffersFragment extends Fragment {
             });
 
 
-            FAB = (ImageButton) rootView.findViewById(R.id.imageButton);
+            FAB = (ImageView) rootView.findViewById(R.id.imageButton);
             FAB.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {

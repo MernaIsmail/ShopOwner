@@ -35,17 +35,6 @@
         android:layout_alignParentTop="true">
 
 
-        <!--<GridView-->
-            <!--android:id="@+id/mGridView"-->
-            <!--android:layout_width="match_parent"-->
-            <!--android:layout_height="match_parent"-->
-            <!--android:columnWidth="100dp"-->
-            <!--android:gravity="center"-->
-            <!--android:numColumns="auto_fit"-->
-            <!--android:stretchMode="spacingWidthUniform"-->
-            <!--android:textAlignment="center"-->
-
-            <!--/>-->
 
         <LinearLayout
             android:id="@+id/linlaHeaderProgress"
@@ -82,14 +71,13 @@
             android:scrollbars="vertical">
         </GridView>
 
-        <ImageButton
+        <ImageView
             android:id="@+id/imageButton"
-            android:layout_width="70dp"
-            android:layout_height="70dp"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
             android:layout_gravity="right|bottom"
-
             android:layout_margin="15dp"
-            android:src="@drawable/buttonaddoffer" />
+            android:src="@drawable/buttonaddoffer"/>
 
 
     </FrameLayout>
